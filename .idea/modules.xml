@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/flutter_pkcs12.iml" filepath="$PROJECT_DIR$/flutter_pkcs12.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/flutter_pkcs12_android.iml" filepath="$PROJECT_DIR$/android/flutter_pkcs12_android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/example/android/flutter_pkcs12_example_android.iml" filepath="$PROJECT_DIR$/example/android/flutter_pkcs12_example_android.iml" />
+    </modules>
+  </component>
+</project>
