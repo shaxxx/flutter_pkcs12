@@ -56,12 +56,12 @@ class FlutterPkcs12 {
     return version;
   }
 
-  Future<SignWithP12Result> signWithP12(
-      {Uint8List p12, String password, Uint8List data}) async {
+  Future<SignWithP12Result> signDataWithP12(
+      {Uint8List p12Bytes, String password, Uint8List data}) async {
     try {
       final Uint8List signatureB64 =
-          await _channel.invokeMethod('signDataWithPfx', {
-        'pfx': p12,
+          await _channel.invokeMethod('signDataWithP12', {
+        'p12Bytes': p12Bytes,
         'password': password,
         'data': data,
       });
@@ -85,10 +85,10 @@ class FlutterPkcs12 {
   }
 
   Future<CertificateResult> readPublicKey(
-      {Uint8List p12, String password}) async {
+      {Uint8List p12Bytes, String password}) async {
     try {
-      final Uint8List crtB64 = await _channel
-          .invokeMethod('readPfx', {'pfx': p12, 'password': password});
+      final Uint8List crtB64 = await _channel.invokeMethod(
+          'readPublicKey', {'p12Bytes': p12Bytes, 'password': password});
       return CertificateResult(b64: base64Encode(crtB64));
     } catch (e) {
       if (e is PlatformException) {

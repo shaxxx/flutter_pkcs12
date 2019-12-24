@@ -22,21 +22,21 @@ public class SwiftFlutterPkcs12Plugin: NSObject, FlutterPlugin {
   private func executeFunc(call: FlutterMethodCall, result:FlutterResult) throws {
         let dic = call.arguments as! [String: Any]
         switch call.method {
-        case "signDataWithPfx":
-            let pfx = dic["pfx"] as! FlutterStandardTypedData
+        case "signDataWithP12":
+            let p12Bytes = dic["p12Bytes"] as! FlutterStandardTypedData
             let data = dic["data"] as! FlutterStandardTypedData
-            try self.signDataWithPfx(pfx.data as NSData, dic["password"] as! NSString, data.data as NSData, result)
-        case "readPfx":
-            let pfx = dic["pfx"] as! FlutterStandardTypedData
-            try self.readPfx(pfx.data as NSData, dic["password"] as! NSString, result)
+            try self.signDataWithP12(p12Bytes.data as NSData, dic["password"] as! NSString, data.data as NSData, result)
+        case "readPublicKey":
+            let p12Bytes = dic["p12Bytes"] as! FlutterStandardTypedData
+            try self.readPublicKey(p12Bytes.data as NSData, dic["password"] as! NSString, result)
         default:
             print("Method not found")
             result(FlutterMethodNotImplemented)
         }
     }
 
-    private func signDataWithPfx(_ pfx: NSData, _ password: NSString, _ data: NSData, _ result: FlutterResult) throws {
-        let privateKeyResponse = self.getPrivateKey(pfx, password)
+    private func signDataWithP12(_ p12Bytes: NSData, _ password: NSString, _ data: NSData, _ result: FlutterResult) throws {
+        let privateKeyResponse = self.getPrivateKey(p12Bytes, password)
         guard privateKeyResponse.error == errSecSuccess else {
             let secError = privateKeyResponse.error
             if secError == errSecAuthFailed {
@@ -59,8 +59,8 @@ public class SwiftFlutterPkcs12Plugin: NSObject, FlutterPlugin {
         result(resultSign.signedData)
     }
 
-    private func readPfx(_ pfx: NSData, _ password: NSString, _ result: FlutterResult) throws {
-        let certificateResponse = self.getCertificate(pfx, password)
+    private func readPublicKey(_ p12Bytes: NSData, _ password: NSString, _ result: FlutterResult) throws {
+        let certificateResponse = self.getCertificate(p12Bytes, password)
         guard certificateResponse.error == errSecSuccess else {
             let secError = certificateResponse.error
             if secError == errSecAuthFailed {
@@ -80,10 +80,10 @@ public class SwiftFlutterPkcs12Plugin: NSObject, FlutterPlugin {
     }
 
     private typealias IdentityResult = (identity: SecIdentity?, error: OSStatus)
-    private func getIdentity(_ data: NSData, _ password: NSString) -> IdentityResult{
+    private func getIdentity(_ p12Bytes: NSData, _ password: NSString) -> IdentityResult{
         let importPasswordOption:NSDictionary = [ kSecImportExportPassphrase : password]
         var items : CFArray?
-        let secError : OSStatus = SecPKCS12Import(data,importPasswordOption, &items)
+        let secError : OSStatus = SecPKCS12Import(p12Bytes,importPasswordOption, &items)
         guard secError == errSecSuccess else {
             return IdentityResult( identity: nil, error: secError )
         }
@@ -94,8 +94,8 @@ public class SwiftFlutterPkcs12Plugin: NSObject, FlutterPlugin {
     }
     
     private typealias PrivateKeyResult = (privateKey: SecKey?, error: OSStatus)
-    private func getPrivateKey(_ data:NSData, _ password: NSString ) -> PrivateKeyResult {
-        let identityResult = getIdentity(data, password)
+    private func getPrivateKey(_ p12Bytes:NSData, _ password: NSString ) -> PrivateKeyResult {
+        let identityResult = getIdentity(p12Bytes, password)
         guard identityResult.error == errSecSuccess else {
             return PrivateKeyResult(privateKey: nil, error: identityResult.error)
         }
@@ -116,8 +116,8 @@ public class SwiftFlutterPkcs12Plugin: NSObject, FlutterPlugin {
     }
     
     private typealias CertificateResult = (certificate: SecCertificate?, error: OSStatus)
-    private func getCertificate(_ data: NSData, _ password: NSString) -> CertificateResult {
-        let identityResult = getIdentity(data, password)
+    private func getCertificate(_ p12Bytes: NSData, _ password: NSString) -> CertificateResult {
+        let identityResult = getIdentity(p12Bytes, password)
         guard identityResult.error == errSecSuccess else {
             return CertificateResult(certificate: nil, error: identityResult.error)
         }
@@ -143,11 +143,10 @@ public class SwiftFlutterPkcs12Plugin: NSObject, FlutterPlugin {
     private func sign(data plainData: Data, privateKey: SecKey!) -> RSASigningResult {
         // Then sign it
         let dataToSign = [UInt8](plainData)
-        var hash: [UInt8] = [UInt8](repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
-        CC_SHA1(dataToSign, CC_LONG(plainData.count), &hash)
         var signatureLen = SecKeyGetBlockSize(privateKey)
         var signature = [UInt8](repeating: 0, count: SecKeyGetBlockSize(privateKey))
-        
+        var hash: [UInt8] = [UInt8](repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
+        CC_SHA1(dataToSign, CC_LONG(plainData.count), &hash)
         let err: OSStatus = SecKeyRawSign(privateKey,
                                           SecPadding.PKCS1SHA1,
                                           hash,

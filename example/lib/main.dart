@@ -63,10 +63,10 @@ class _MyAppState extends State<MyApp> {
               child: RaisedButton(
                 child: Text("Sign data"),
                 onPressed: () async {
-                  var signature = await FlutterPkcs12().signWithP12(
+                  var signature = await FlutterPkcs12().signDataWithP12(
                     data: Uint8List.fromList(
                         _dataToSignController.text.codeUnits),
-                    p12: _p12Bytes,
+                    p12Bytes: _p12Bytes,
                     password: "test",
                   );
                   setState(() {
@@ -86,7 +86,7 @@ class _MyAppState extends State<MyApp> {
                 child: Text("Read public key"),
                 onPressed: () async {
                   final cert = await FlutterPkcs12()
-                      .readPublicKey(p12: _p12Bytes, password: "test");
+                      .readPublicKey(p12Bytes: _p12Bytes, password: "test");
                   setState(() {
                     _publicKey = cert;
                   });

@@ -52,17 +52,17 @@ public class FlutterPkcs12Plugin implements FlutterPlugin, MethodCallHandler {
     public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
         if (call.method.equals("getPlatformVersion")) {
             result.success("Android " + android.os.Build.VERSION.RELEASE);
-        } else if (call.method.equals("signDataWithPfx")) {
-            byte[] p12Bytes = call.argument("pfx");
+        } else if (call.method.equals("signDataWithP12")) {
+            byte[] p12Bytes = call.argument("p12Bytes");
             String password = call.argument("password");
             byte[] dataToSign = call.argument("data");
-            SignDataWithPfx(result, p12Bytes, password, dataToSign);
-        } else if (call.method.equals("readPfx")) {
+            SignDataWithP12(result, p12Bytes, password, dataToSign);
+        } else if (call.method.equals("readPublicKey")) {
             try {
-                byte[] p12Bytes = call.argument("pfx");
+                byte[] p12Bytes = call.argument("p12Bytes");
                 String password = call.argument("password");
-                byte[] certificate = getCertificate(p12Bytes, password);
-                result.success(certificate);
+                byte[] publicKey = ReadPublicKey(p12Bytes, password);
+                result.success(publicKey);
             } catch (EOFException ex) {
                 result.error("BAD_CERTIFICATE_FORMAT", ex.getMessage(), null);
             } catch (IOException ex) {
@@ -85,7 +85,7 @@ public class FlutterPkcs12Plugin implements FlutterPlugin, MethodCallHandler {
         }
     }
 
-    private void SignDataWithPfx(MethodChannel.Result result, byte[] p12Bytes, String password,
+    private void SignDataWithP12(MethodChannel.Result result, byte[] p12Bytes, String password,
                                  byte[] data) {
         try {
             KeyStore.PrivateKeyEntry pk = getPrivateKey(p12Bytes, password);
@@ -107,7 +107,7 @@ public class FlutterPkcs12Plugin implements FlutterPlugin, MethodCallHandler {
         return sig.sign();
     }
 
-    byte[] getCertificate(byte[] p12Bytes, String password) throws
+    byte[] ReadPublicKey(byte[] p12Bytes, String password) throws
             KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         KeyStore p12 = getP12(p12Bytes, password);
         Enumeration<String> e = p12.aliases();
