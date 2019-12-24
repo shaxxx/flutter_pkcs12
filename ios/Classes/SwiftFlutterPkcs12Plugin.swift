@@ -2,24 +2,12 @@ import Flutter
 import UIKit
 import Foundation
 import Security
+import CommonCrypto
 
 public class SwiftFlutterPkcs12Plugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "flutter_pkcs12", binaryMessenger: registrar.messenger())
     let instance = SwiftFlutterPkcs12Plugin()
-    registrar.addMethodCallDelegate(instance, channel: channel)
-  }
-
-  public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-    result("iOS " + UIDevice.current.systemVersion)
-  }
-}
-
-
-public class SwiftFlutterPkcs12Plugin: NSObject, FlutterPlugin {
-  public static func register(with registrar: FlutterPluginRegistrar) {
-    let channel = FlutterMethodChannel(name: "flutter_pkcs12", binaryMessenger: registrar.messenger())
-    let instance = SwiftFlutterPfxPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
 
@@ -87,8 +75,8 @@ public class SwiftFlutterPkcs12Plugin: NSObject, FlutterPlugin {
             return
         }
         let data = SecCertificateCopyData(certificate) as Data
-        let string = (data as Data).base64EncodedString(options: Data.Base64EncodingOptions(rawValue: 0))
-        result(string)
+        //let string = (data as Data).base64EncodedString(options: Data.Base64EncodingOptions(rawValue: 0))
+        result(data)
     }
 
     private typealias IdentityResult = (identity: SecIdentity?, error: OSStatus)
@@ -155,17 +143,19 @@ public class SwiftFlutterPkcs12Plugin: NSObject, FlutterPlugin {
     private func sign(data plainData: Data, privateKey: SecKey!) -> RSASigningResult {
         // Then sign it
         let dataToSign = [UInt8](plainData)
+        var hash: [UInt8] = [UInt8](repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
+        CC_SHA1(dataToSign, CC_LONG(plainData.count), &hash)
         var signatureLen = SecKeyGetBlockSize(privateKey)
         var signature = [UInt8](repeating: 0, count: SecKeyGetBlockSize(privateKey))
         
         let err: OSStatus = SecKeyRawSign(privateKey,
-                                          SecPadding.PKCS1,
-                                          dataToSign,
-                                          plainData.count,
+                                          SecPadding.PKCS1SHA1,
+                                          hash,
+                                          hash.count,
                                           &signature, &signatureLen)
         
         if err == errSecSuccess {
-            return (signedData: Data(bytes: signature), error: nil)
+            return (signedData: Data(_: signature), error: nil)
         }
         
         return (signedData: nil, error: NSError(domain: NSOSStatusErrorDomain, code: Int(err), userInfo: nil))

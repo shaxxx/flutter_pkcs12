@@ -6,3 +6,6 @@
 
 build/
 pubspec.lock
+example/ios/Podfile
+example/ios/Podfile.lock
+example/ios/Runner.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
