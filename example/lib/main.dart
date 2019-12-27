@@ -15,6 +15,10 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   List<int> _p12Bytes;
+  List _signatureHashes = ["PKCS-SHA1", "PKCS-SHA256", "PKCS-SHA512"];
+
+  List<DropdownMenuItem<SignatureHashType>> _dropDownMenuItems;
+  SignatureHashType _selectedHashType;
 
   TextEditingController _dataToSignController = new TextEditingController();
 
@@ -25,6 +29,19 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _dataToSignController.text = "Hello world";
+    _dropDownMenuItems = getDropDownMenuItems();
+    _selectedHashType = _dropDownMenuItems[0].value;
+  }
+
+// here we are creating the list needed for the DropDownButton
+  List<DropdownMenuItem<SignatureHashType>> getDropDownMenuItems() {
+    List<DropdownMenuItem<SignatureHashType>> items = new List();
+    for (var i = 0; i < _signatureHashes.length; i++) {
+      items.add(new DropdownMenuItem<SignatureHashType>(
+          value: SignatureHashType.values[i],
+          child: new Text(_signatureHashes[i])));
+    }
+    return items;
   }
 
   @override
@@ -59,6 +76,26 @@ class _MyAppState extends State<MyApp> {
               ),
             ),
             Padding(
+              padding: const EdgeInsets.only(top: 15, bottom: 5, left: 10),
+              child: Row(
+                children: <Widget>[
+                  Text("Signature hash:"),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 10),
+                    child: DropdownButton(
+                      value: _selectedHashType,
+                      items: _dropDownMenuItems,
+                      onChanged: (item) {
+                        setState(() {
+                          _selectedHashType = item;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
               padding: const EdgeInsets.only(top: 10),
               child: RaisedButton(
                 child: Text("Sign data"),
@@ -68,6 +105,7 @@ class _MyAppState extends State<MyApp> {
                         _dataToSignController.text.codeUnits),
                     p12Bytes: _p12Bytes,
                     password: "test",
+                    signatureHashType: _selectedHashType,
                   );
                   setState(() {
                     _signature = signature;

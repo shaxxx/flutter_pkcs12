@@ -4,6 +4,12 @@ import Foundation
 import Security
 import CommonCrypto
 
+enum SignatureHashType : integer_t {
+    case PKCS_SHA1 = 0
+    case PKCS_SHA256 = 1
+    case PKCS_SHA512 = 2
+}
+
 public class SwiftFlutterPkcs12Plugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "flutter_pkcs12", binaryMessenger: registrar.messenger())
@@ -25,7 +31,8 @@ public class SwiftFlutterPkcs12Plugin: NSObject, FlutterPlugin {
         case "signDataWithP12":
             let p12Bytes = dic["p12Bytes"] as! FlutterStandardTypedData
             let data = dic["data"] as! FlutterStandardTypedData
-            try self.signDataWithP12(p12Bytes.data as NSData, dic["password"] as! NSString, data.data as NSData, result)
+            let signatureHashType = SignatureHashType.init(rawValue: dic["signatureHashType"] as! integer_t)!
+            try self.signDataWithP12(p12Bytes.data as NSData, dic["password"] as! NSString, data.data as NSData, signatureHashType, result)
         case "readPublicKey":
             let p12Bytes = dic["p12Bytes"] as! FlutterStandardTypedData
             try self.readPublicKey(p12Bytes.data as NSData, dic["password"] as! NSString, result)
@@ -35,7 +42,7 @@ public class SwiftFlutterPkcs12Plugin: NSObject, FlutterPlugin {
         }
     }
 
-    private func signDataWithP12(_ p12Bytes: NSData, _ password: NSString, _ data: NSData, _ result: FlutterResult) throws {
+    private func signDataWithP12(_ p12Bytes: NSData, _ password: NSString, _ data: NSData, _ signatureHashType : SignatureHashType, _ result: FlutterResult) throws {
         let privateKeyResponse = self.getPrivateKey(p12Bytes, password)
         guard privateKeyResponse.error == errSecSuccess else {
             let secError = privateKeyResponse.error
@@ -51,7 +58,7 @@ public class SwiftFlutterPkcs12Plugin: NSObject, FlutterPlugin {
             result(FlutterError(code: "PRIVATE_KEY_ERROR", message: "It was not possible to extract the private key", details: nil))
             return
         }
-        let resultSign : RSASigningResult = self.sign(data: data as Data, privateKey: privateKey)
+        let resultSign : RSASigningResult = self.sign(data: data as Data, privateKey: privateKey, signatureHashType: signatureHashType)
         guard resultSign.error == nil else {
             result(FlutterError(code: "ERROR_SIGN", message: "It was not possible to sign using the private key \(resultSign.error!.description)", details: nil))
             return
@@ -140,15 +147,29 @@ public class SwiftFlutterPkcs12Plugin: NSObject, FlutterPlugin {
     }
 
     private typealias RSASigningResult = (signedData: Data?, error: NSError?)
-    private func sign(data plainData: Data, privateKey: SecKey!) -> RSASigningResult {
+    private func sign(data plainData: Data, privateKey: SecKey!, signatureHashType: SignatureHashType) -> RSASigningResult {
         // Then sign it
         let dataToSign = [UInt8](plainData)
         var signatureLen = SecKeyGetBlockSize(privateKey)
         var signature = [UInt8](repeating: 0, count: SecKeyGetBlockSize(privateKey))
-        var hash: [UInt8] = [UInt8](repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
-        CC_SHA1(dataToSign, CC_LONG(plainData.count), &hash)
+        var hash: [UInt8]
+        var padding: SecPadding
+        switch signatureHashType {
+        case SignatureHashType.PKCS_SHA1:
+            hash = [UInt8](repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
+            CC_SHA1(dataToSign, CC_LONG(plainData.count), &hash)
+            padding = SecPadding.PKCS1SHA1
+        case SignatureHashType.PKCS_SHA256:
+            hash = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
+            CC_SHA256(dataToSign, CC_LONG(plainData.count), &hash)
+            padding = SecPadding.PKCS1SHA256
+        case SignatureHashType.PKCS_SHA512:
+            hash = [UInt8](repeating: 0, count: Int(CC_SHA512_DIGEST_LENGTH))
+            CC_SHA512(dataToSign, CC_LONG(plainData.count), &hash)
+            padding = SecPadding.PKCS1SHA512
+        }
         let err: OSStatus = SecKeyRawSign(privateKey,
-                                          SecPadding.PKCS1SHA1,
+                                          padding,
                                           hash,
                                           hash.count,
                                           &signature, &signatureLen)

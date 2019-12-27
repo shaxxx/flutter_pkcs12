@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class CustomException implements Exception {
@@ -46,7 +47,11 @@ class SignResult {
   String certificate;
 }
 
-enum SignatureHashType { SHA1, SHA256 }
+enum SignatureHashType {
+  PKCS_SHA1,
+  PKCS_SHA256,
+  PKCS_SHA512,
+}
 
 class FlutterPkcs12 {
   static const MethodChannel _channel = const MethodChannel('flutter_pkcs12');
@@ -56,14 +61,19 @@ class FlutterPkcs12 {
     return version;
   }
 
-  Future<SignWithP12Result> signDataWithP12(
-      {Uint8List p12Bytes, String password, Uint8List data}) async {
+  Future<SignWithP12Result> signDataWithP12({
+    @required Uint8List p12Bytes,
+    @required String password,
+    @required Uint8List data,
+    @required SignatureHashType signatureHashType,
+  }) async {
     try {
       final Uint8List signatureB64 =
           await _channel.invokeMethod('signDataWithP12', {
         'p12Bytes': p12Bytes,
         'password': password,
         'data': data,
+        'signatureHashType': signatureHashType.index,
       });
       return SignWithP12Result(signature: base64Encode(signatureB64));
     } catch (e) {
@@ -84,8 +94,10 @@ class FlutterPkcs12 {
     }
   }
 
-  Future<CertificateResult> readPublicKey(
-      {Uint8List p12Bytes, String password}) async {
+  Future<CertificateResult> readPublicKey({
+    @required Uint8List p12Bytes,
+    @required String password,
+  }) async {
     try {
       final Uint8List crtB64 = await _channel.invokeMethod(
           'readPublicKey', {'p12Bytes': p12Bytes, 'password': password});

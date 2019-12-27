@@ -56,7 +56,8 @@ public class FlutterPkcs12Plugin implements FlutterPlugin, MethodCallHandler {
             byte[] p12Bytes = call.argument("p12Bytes");
             String password = call.argument("password");
             byte[] dataToSign = call.argument("data");
-            SignDataWithP12(result, p12Bytes, password, dataToSign);
+            java.lang.Integer signatureHashType = call.argument("signatureHashType");
+            SignDataWithP12(result, p12Bytes, password, dataToSign, SignatureHashType.values()[signatureHashType]);
         } else if (call.method.equals("readPublicKey")) {
             try {
                 byte[] p12Bytes = call.argument("p12Bytes");
@@ -86,10 +87,10 @@ public class FlutterPkcs12Plugin implements FlutterPlugin, MethodCallHandler {
     }
 
     private void SignDataWithP12(MethodChannel.Result result, byte[] p12Bytes, String password,
-                                 byte[] data) {
+                                 byte[] data, SignatureHashType signatureHashType) {
         try {
             KeyStore.PrivateKeyEntry pk = getPrivateKey(p12Bytes, password);
-            result.success(SignWithPrivateKey(pk.getPrivateKey(), data));
+            result.success(SignWithPrivateKey(pk.getPrivateKey(), data, signatureHashType));
         } catch (EOFException ex) {
             result.error("BAD_CERTIFICATE_FORMAT", ex.getMessage(), null);
         } catch (IOException ex) {
@@ -99,9 +100,20 @@ public class FlutterPkcs12Plugin implements FlutterPlugin, MethodCallHandler {
         }
     }
 
-    private byte[] SignWithPrivateKey(PrivateKey pk, byte[] data) throws
+    private byte[] SignWithPrivateKey(PrivateKey pk, byte[] data, SignatureHashType signatureHashType) throws
             InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-        Signature sig = Signature.getInstance("SHA1WithRSA");
+        Signature sig = null;
+        switch (signatureHashType) {
+            case PKCS_SHA1:
+                sig = Signature.getInstance("SHA1WithRSA");
+                break;
+            case PKCS_SHA256:
+                sig = Signature.getInstance("SHA256withRSA");
+                break;
+            case PKCS_SHA512:
+                sig = Signature.getInstance("SHA512withRSA");
+                break;
+        }
         sig.initSign(pk);
         sig.update(data);
         return sig.sign();
@@ -129,5 +141,11 @@ public class FlutterPkcs12Plugin implements FlutterPlugin, MethodCallHandler {
         KeyStore p12 = KeyStore.getInstance("pkcs12");
         p12.load(new ByteArrayInputStream(p12Bytes), password.toCharArray());
         return p12;
+    }
+
+    enum SignatureHashType {
+        PKCS_SHA1,
+        PKCS_SHA256,
+        PKCS_SHA512,
     }
 }
