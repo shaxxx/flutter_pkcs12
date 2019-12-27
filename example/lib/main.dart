@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -101,8 +102,7 @@ class _MyAppState extends State<MyApp> {
                 child: Text("Sign data"),
                 onPressed: () async {
                   var signature = await FlutterPkcs12().signDataWithP12(
-                    data: Uint8List.fromList(
-                        _dataToSignController.text.codeUnits),
+                    data: utf8.encode(_dataToSignController.text),
                     p12Bytes: _p12Bytes,
                     password: "test",
                     signatureHashType: _selectedHashType,
