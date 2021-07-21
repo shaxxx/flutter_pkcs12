@@ -35,7 +35,7 @@ class _MyAppState extends State<MyApp> {
 
 // here we are creating the list needed for the DropDownButton
   List<DropdownMenuItem<SignatureHashType>> getDropDownMenuItems() {
-    List<DropdownMenuItem<SignatureHashType>> items = new List();
+    List<DropdownMenuItem<SignatureHashType>> items = [];
     for (var i = 0; i < _signatureHashes.length; i++) {
       items.add(new DropdownMenuItem<SignatureHashType>(
           value: SignatureHashType.values[i],
@@ -97,7 +97,7 @@ class _MyAppState extends State<MyApp> {
             ),
             Padding(
               padding: const EdgeInsets.only(top: 10),
-              child: RaisedButton(
+              child: ElevatedButton(
                 child: Text("Sign data"),
                 onPressed: () async {
                   var signature = await FlutterPkcs12().signDataWithP12(
@@ -119,7 +119,7 @@ class _MyAppState extends State<MyApp> {
             ),
             Padding(
               padding: const EdgeInsets.only(top: 30),
-              child: RaisedButton(
+              child: ElevatedButton(
                 child: Text("Read public key"),
                 onPressed: () async {
                   final cert = await FlutterPkcs12()
