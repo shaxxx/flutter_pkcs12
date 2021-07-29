@@ -7,12 +7,21 @@
         "request": "launch",
         "type": "dart"
       },
+      // {
+      //   "name": "Debug native (skip Dart build)",
+      //   "type": "cppdbg",
+      //   "request": "launch",
+      //   "program": "${workspaceFolder}/example/build/linux/x64/debug/bundle/flutter_pkcs12_example",
+      //   "cwd": "${workspaceFolder}/example",
+      //   "preLaunchTask": "cmake_ninja_debug"
+      // },
       {
         "name": "Debug native",
         "type": "cppdbg",
         "request": "launch",
         "program": "${workspaceFolder}/example/build/linux/x64/debug/bundle/flutter_pkcs12_example",
-        "cwd": "${workspaceFolder}"
+        "cwd": "${workspaceFolder}/example",
+        "preLaunchTask": "flutter_build"
       }
     ]
   }
