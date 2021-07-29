@@ -16,7 +16,7 @@
       //   "preLaunchTask": "cmake_ninja_debug"
       // },
       {
-        "name": "Debug native",
+        "name": "Debug linux native",
         "type": "cppdbg",
         "request": "launch",
         "program": "${workspaceFolder}/example/build/linux/x64/debug/bundle/flutter_pkcs12_example",
