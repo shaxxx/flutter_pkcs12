@@ -14,6 +14,20 @@
                 "cwd": "${workspaceFolder}/example"
             },
         },
+        {
+            "type": "cppbuild",
+            "label": "flutter_build_windows",
+            "command": "C:\\src\\flutter\\bin\\flutter",
+            "args": [
+                "build",
+                "windows",
+                "-v",
+                "--debug"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/example"
+            },
+        },
         // {
         //     "label": "cmake_ninja_debug",
         //     "dependsOn": [
@@ -69,4 +83,3 @@
     ],
     "version": "2.0.0"
 }
-

@@ -1,27 +1,43 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-      {
-        "name": "Launch Example",
-        "cwd": "example",
-        "request": "launch",
-        "type": "dart"
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Example",
+      "cwd": "example",
+      "request": "launch",
+      "type": "dart"
+    },
+    // {
+    //   "name": "Debug native (skip Dart build)",
+    //   "type": "cppdbg",
+    //   "request": "launch",
+    //   "program": "${workspaceFolder}/example/build/linux/x64/debug/bundle/flutter_pkcs12_example",
+    //   "cwd": "${workspaceFolder}/example",
+    //   "preLaunchTask": "cmake_ninja_debug"
+    // },
+    {
+      "name": "Debug linux native",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/example/build/linux/x64/debug/bundle/flutter_pkcs12_example",
+      "cwd": "${workspaceFolder}/example",
+      "preLaunchTask": "flutter_build"
+    },
+    {
+      "name": "Debug windows native",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}\\example\\build\\windows\\runner\\Debug\\flutter_pkcs12_example.exe",
+      "cwd": "${workspaceFolder}\\example",
+      "symbolSearchPath": "${workspaceFolder}\\example\\build\\windows\\runner\\Debug\\",
+      "externalConsole": true,
+      "logging": {
+        "moduleLoad": false,
+        "trace": true
       },
-      // {
-      //   "name": "Debug native (skip Dart build)",
-      //   "type": "cppdbg",
-      //   "request": "launch",
-      //   "program": "${workspaceFolder}/example/build/linux/x64/debug/bundle/flutter_pkcs12_example",
-      //   "cwd": "${workspaceFolder}/example",
-      //   "preLaunchTask": "cmake_ninja_debug"
-      // },
-      {
-        "name": "Debug linux native",
-        "type": "cppdbg",
-        "request": "launch",
-        "program": "${workspaceFolder}/example/build/linux/x64/debug/bundle/flutter_pkcs12_example",
-        "cwd": "${workspaceFolder}/example",
-        "preLaunchTask": "flutter_build"
-      }
-    ]
-  }
+      "visualizerFile": "${workspaceFolder}/my.natvis",
+      "showDisplayString": true,
+      "preLaunchTask": "flutter_build_windows"
+    }
+  ]
+}
