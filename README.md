@@ -5,7 +5,7 @@ Result of signing is RSA signature with PKCS1 padding.
 
 ## Source code
 
-This project is heavily based on 
+Project was forked from
 [flutter_p12 plugin](https://github.com/Dviejopomata/flutter-p12).
 I decided to move it to new plugin because
 - i expect same signature result on Android & iOS using same input parameters which is not the case in the original plugin
@@ -14,7 +14,7 @@ I decided to move it to new plugin because
 
 ## Features
 
-All features are implemented on Android & iOS.
+All features are implemented on Android,iOS,Linux,Windows & MacOS.
 
 Only 2 methods are provided `signDataWithP12` and `readPublicKey`
 
@@ -29,7 +29,7 @@ Data bytes are usually encoded string (ie. `utf8.encode("Some data");` if you're
 While there are other possible hash algorithms I decided to use only these since they are most used and implemented on both platforms.
 MD5 is considered insecure and unsupported as of iOS 5.0.
 
-For more details check [Android](https://developer.android.com/reference/java/security/Signature) & [iOS](https://developer.apple.com/documentation/security/secpadding) documentation.
+For more details check [Android](https://developer.android.com/reference/java/security/Signature),[iOS](https://developer.apple.com/documentation/security/secpadding), [Linux](https://github.com/openssl/openssl/tree/master/demos/pkcs12),[Windows](https://docs.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-cryptsignhasha),[MacOS](https://developer.apple.com/documentation/security/certificate_key_and_trust_services/keys/signing_and_verifying) documentation.
 
 `readPublicKey` reads public key from p12 file and returns it as Base64 string.
 

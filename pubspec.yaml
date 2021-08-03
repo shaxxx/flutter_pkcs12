@@ -1,6 +1,6 @@
 name: flutter_pkcs12
-description: A new flutter plugin project.
-version: 0.0.2
+description: Plugin to digitally sign data with PKCS12 certificates.
+version: 0.0.3
 author:
 homepage:
 
